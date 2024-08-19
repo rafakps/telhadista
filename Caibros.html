@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formulário com Vue.js</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0e6d6; /* Cor amadeirada suave */
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      position: relative;
+    }
+    .container {
+      display: flex;
+      justify-content: space-between;
+      max-width: 900px;
+      width: 100%;
+      padding: 20px;
+      background-color: #ffffff; /* Cor de fundo da caixa */
+      border-radius: 12px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+    .container::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('https://tse2.mm.bing.net/th/id/OIP.XHG4OyDB9XKCFPpgJhaG_gHaHa?rs=1&pid=ImgDetMain') no-repeat center center;
+      background-size: cover;
+      opacity: 0.4;
+      z-index: 0;
+    }
+    .form-container, .result-container {
+      width: 45%;
+      position: relative;
+      z-index: 1;
+    }
+    h1 {
+      text-align: center;
+      color: #4a3b2a; /* Cor amadeirada para o texto */
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #4a3b2a; /* Cor amadeirada para o texto */
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #c1a59b; /* Cor de borda amadeirada */
+      border-radius: 8px;
+    }
+    button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background-color: #8e6f4e; /* Cor amadeirada para o botão */
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #6d4c41; /* Cor amadeirada mais escura para o botão ao passar o mouse */
+    }
+    .results, .caibros, .ripas {
+      margin-top: 20px;
+      font-size: 16px;
+      color: #4a3b2a; /* Cor amadeirada para o texto */
+    }
+    .results p, .caibros li, .ripas li {
+      margin: 5px 0;
+    }
+    .caibros, .ripas {
+      list-style-type: none;
+      padding: 0;
+    }
+    .caibros li, .ripas li {
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="container">
+    <div class="form-container">
+      <h1>Calculadora RK Engenharia</h1>
+      <form @submit.prevent="handleSubmit">
+        <div class="form-group">
+          <label for="comprimento">Comprimento (cm):</label>
+          <input type="number" v-model.number="comprimento" id="comprimento" value="600" required />
+        </div>
+        
+        <div class="form-group">
+          <label for="largura">Largura (cm):</label>
+          <input type="number" v-model.number="largura" id="largura" value="400" required />
+        </div>
+        
+        <div class="form-group">
+          <label for="beiral">Beiral (cm):</label>
+          <input type="number" v-model.number="beiral" id="beiral" value="70" required />
+        </div>
+        
+        <div class="form-group">
+          <label for="inclinacao">Inclinação (%):</label>
+          <input type="number" v-model.number="inclinacao" id="inclinacao" value="30" required />
+        </div>
+        
+        <button type="submit">Calcular</button>
+      </form>
+    </div>
+
+    <div class="result-container" v-if="submitted">
+      <h2>Medidas do Telhado:</h2>
+      <div class="results">
+        <p>Comprimento do Telhado (CT) = {{ ct }} cm</p>
+        <p>Largura do Telhado (LT) = {{ lt }} cm</p>
+        <p>Meia Largura (X) = {{ x }} cm</p>
+        <p>Cumieira (Y) = {{ y }} cm</p>
+        <p>Altura (H) = {{ h }} cm</p>
+      </div>
+      
+      <h2>Caibros:</h2>
+      <ul class="caibros">
+        <li v-for="(valor, index) in caibros" :key="index">
+          {{ nCaibros * 8}} peças de {{ valor.valorMultiplo50 }} cm ({{ valor.valorBase.toFixed(2) }} cm)
+        </li>
+        <li v-if="cm">{{ cm }} peças de {{  md_arred  }} cm ({{ md }} cm)</li>
+        <li> Total {{ totalCaibros }} metros</li>
+      </ul>
+
+      <h2>Ripas:</h2>
+      <ul class="ripas">
+        <li v-for="(ripa, index) in ripas" :key="index">
+          {{ numeroRipasY * 8  }} peças de {{ ripa }} cm
+        </li>
+        <li>{{ numeroRipasY * 2 }} peças de {{ y }} cm</li>
+        <li> Total {{ totalRipas }} metros</li>
+
+      </ul>
+    </div>
+  </div>
+
+  <!-- Importando Vue.js via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+  <script>
+    new Vue({
+      el: '#app',
+      data() {
+        return {
+          comprimento: 600,
+          largura: 400,
+          beiral: 70,
+          inclinacao: 30,
+          submitted: false
+        };
+      },
+      computed: {
+        ct() {
+          return this.comprimento && this.beiral ? (parseFloat(this.comprimento) + 2 * parseFloat(this.beiral)).toFixed(2) : '';
+        },
+        lt() {
+          return this.largura && this.beiral ? (parseFloat(this.largura) + 2 * parseFloat(this.beiral)).toFixed(2) : '';
+        },
+        x() {
+          return this.lt ? (parseFloat(this.lt) / 2).toFixed(2) : '';
+        },
+        y() {
+          return this.ct && this.x ? (parseFloat(this.ct) - 2 * parseFloat(this.x)).toFixed(2) : '';
+        },
+        h() {
+          return this.x && this.inclinacao ? (parseFloat(this.x) * parseFloat(this.inclinacao) / 100).toFixed(2) : '';
+        },
+        md() {
+          return this.h && this.x ? (Math.sqrt(Math.pow(parseFloat(this.h), 2) + Math.pow(parseFloat(this.x), 2))).toFixed(2) : '';
+        },
+        nCaibros(){
+            return Math.floor(parseFloat(this.x) / 50);
+        },
+        caibros() {
+          if (!this.md || !this.x) return [];
+          const numCaibros = Math.floor(parseFloat(this.x) / 50);
+          const valorBase = 50 * parseFloat(this.x) / parseFloat(this.md);
+          return Array.from({ length: numCaibros }, (_, i) => {
+            const valorMultiplo50 = (i + 1) * 50;
+            return {
+              valorMultiplo50: valorMultiplo50,
+              valorBase: valorBase * (i+1)
+              
+              
+            };
+          });
+        },
+        cm() {
+          if (!this.y) return '';
+          return ((Math.ceil(parseFloat(this.y) / 50) + 1) * 2) + ' peças de';
+        },
+        md_arred(){
+          return Math.ceil(parseFloat(this.md) / 50) * 50;
+        },
+        nRipas() {
+          return Math.ceil(parseFloat(this.md) / 30) + 1;
+        },
+        ripas() {
+          if (!this.md || !this.x) return [];
+          const numRipas = this.nRipas;
+          const valorBase = (this.md/(this.nRipas-1)) * parseFloat(this.x) / parseFloat(this.md);
+          return Array.from({ length: numRipas-1 }, (_, i) => {
+            const compRipa = (i + 1) * valorBase;
+            return compRipa.toFixed(2);
+          });
+        },
+        numeroRipasY() {
+          return this.y ? Math.ceil(parseFloat(this.md) / 30)+1 : 0;
+        },
+        totalCaibros() {
+        
+         linhas = Math.floor(parseFloat(this.x) / 50)
+         parcial = this.nCaibros * 8 * (linhas/4) * (1+linhas)
+         
+         total = this.md_arred * this.nCaibros * 2/100 + parcial
+         
+         return (total)
+
+        },
+        totalRipas() {
+        
+         linhas = this.nRipas
+         parcial = 8 * (linhas/2) * (1+linhas)
+         
+
+         return (parcial)
+
+        }
+      },
+      methods: {
+        handleSubmit() {
+          this.submitted = true;
+        }
+      }
+    });
+  </script>
+  
+</body>
+</html>
